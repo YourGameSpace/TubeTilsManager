@@ -13,11 +13,21 @@ import java.util.TimerTask;
 
 public class TubeTilsManager {
 
+    private final String prefix;
     private final String snapshot;
     private final String version;
     private final Plugin runningPlugin;
 
-    public TubeTilsManager(Plugin plugin, String snapshot, String version, boolean autoRun) {
+    /**
+     * Creates a new instance and manage TubeTils
+     * @param prefix The prefix, which will be used in the console
+     * @param plugin Your plugin main Class
+     * @param snapshot The Snapshot-Version, which should be installed
+     * @param version The Plugin-Version, which will be used for the update check
+     * @param autoRun Determines whether the manager is automatically executed when the instance is created
+     */
+    public TubeTilsManager(String prefix, Plugin plugin, String snapshot, String version, boolean autoRun) {
+        this.prefix = prefix;
         this.snapshot = snapshot;
         this.version = version;
         this.runningPlugin = plugin;
@@ -64,7 +74,7 @@ public class TubeTilsManager {
                 TimerTask timerTask = new TimerTask() {
                     @Override
                     public void run() {
-                        ccs.sendMessage("Downloading TubeTils ...  " + (int)downloadProgress + "%");
+                        ccs.sendMessage(prefix + "Downloading TubeTils ...  " + (int)downloadProgress + "%");
                     }
                 };
                 timer.schedule(timerTask, 0, 250);
@@ -85,13 +95,13 @@ public class TubeTilsManager {
             }
             timer.cancel();
             thread.interrupt();
-            ccs.sendMessage("Downloading TubeTils ... " + (int)downloadProgress + "%");
+            ccs.sendMessage(prefix + "Downloading TubeTils ... " + (int)downloadProgress + "%");
 
             bout.close();
             in.close();
 
         } catch (IOException exception) {
-            ccs.sendMessage("Error while downloading TubeTils! Disabling plugin ...");
+            ccs.sendMessage(prefix + "Error while downloading TubeTils! Disabling plugin ...");
             exception.printStackTrace();
 
             pluginManager.disablePlugin(runningPlugin);
@@ -104,7 +114,7 @@ public class TubeTilsManager {
             Plugin plugin = pluginManager.loadPlugin(file);
             pluginManager.enablePlugin(plugin);
         } catch (InvalidPluginException | InvalidDescriptionException exception) {
-            ccs.sendMessage("Error while enabling TubeTils! Disabling plugin ...");
+            ccs.sendMessage(prefix + "Error while enabling TubeTils! Disabling plugin ...");
             exception.printStackTrace();
 
             pluginManager.disablePlugin(runningPlugin);
