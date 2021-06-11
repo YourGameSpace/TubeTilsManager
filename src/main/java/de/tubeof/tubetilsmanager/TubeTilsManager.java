@@ -115,7 +115,8 @@ public class TubeTilsManager {
             File file = new File("plugins/TubeTils.jar");
             Plugin plugin = pluginManager.loadPlugin(file);
             pluginManager.enablePlugin(plugin);
-        } catch (InvalidPluginException | InvalidDescriptionException exception) {
+            Thread.sleep(500);
+        } catch (InvalidPluginException | InvalidDescriptionException | InterruptedException exception) {
             ccs.sendMessage(prefix + "Error while enabling TubeTils! Disabling plugin ...");
             exception.printStackTrace();
 
