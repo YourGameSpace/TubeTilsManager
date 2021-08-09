@@ -50,7 +50,13 @@ public class TubeTilsManager {
         }
 
         if(isInstalled()) {
-            if(!getVersion().equals(version)) download(snapshot);
+            if(!getVersion().equals(version)) {
+                ccs.sendMessage(prefix + "§eThe currently installed TubeTils version does not meet the requirements! Disabling installed version ...");
+                pluginManager.disablePlugin(tubeTils);
+
+                download(snapshot);
+                enablePlugin();
+            }
         }
     }
 
@@ -103,7 +109,7 @@ public class TubeTilsManager {
             in.close();
 
         } catch (IOException exception) {
-            ccs.sendMessage(prefix + "Error while downloading TubeTils! Disabling plugin ...");
+            ccs.sendMessage(prefix + "§cError while downloading TubeTils! Disabling plugin ...");
             exception.printStackTrace();
 
             pluginManager.disablePlugin(runningPlugin);
