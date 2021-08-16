@@ -10,6 +10,7 @@ import org.bukkit.plugin.PluginManager;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -51,6 +52,7 @@ public class TubeTilsManager {
         onlineCheck();
         if(!isOnline) {
             ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: No connection to the internet could be established.");
+            ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
             pluginManager.disablePlugin(runningPlugin);
             return;
         }
@@ -86,6 +88,10 @@ public class TubeTilsManager {
         isOnline = google || cloudflare;
     }
 
+    private String getJenkinsDownloadUrl() {
+        return "https://hub.yourgamespace.com/jenkins/view/Libs/job/TubeTils/" + snapshot + "/artifact/target/TubeTils-" + snapshotBuild + ".jar";
+    }
+
     public String getVersion() {
         return tubeTils != null ? tubeTils.getDescription().getVersion() : null;
     }
@@ -95,25 +101,52 @@ public class TubeTilsManager {
     }
 
     private float downloadProgress = 0;
+    private Timer downloadTimer;
+    private Thread downloadThread;
     private void download(String downloadSnapshot) {
         try {
             URL url = new URL("https://hub.yourgamespace.com/repo/de/tubeof/TubeTils/" + downloadSnapshot + "/TubeTils-" + downloadSnapshot + ".jar");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("User-Agent", "TubeApiBridgeConnector");
+            connection.setRequestProperty("User-Agent", "TubeTilsUpdateChecker");
             connection.setRequestProperty("Header-Token", "SD998FS0FG07");
+            connection.setConnectTimeout(4000);
+            connection.setReadTimeout(4000);
+
+            // Check status code
+            int responseCode = connection.getResponseCode();
+            if(responseCode == 429) {
+                ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: Request got blocked by rate limit!");
+                ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
+                return;
+            }
+            else if(responseCode != 200) {
+                ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: An unknown error has occurred!");
+                ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
+                return;
+            }
+
+            // Connect
+            try {
+                connection.connect();
+            } catch (SocketTimeoutException exception) {
+                ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: Connection timeout!");
+                ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
+                return;
+            }
+
             int filesize = connection.getContentLength();
 
-            Timer timer = new Timer();
-            Thread thread = new Thread(() -> {
+            downloadTimer = new Timer();
+            downloadThread = new Thread(() -> {
                 TimerTask timerTask = new TimerTask() {
                     @Override
                     public void run() {
                         ccs.sendMessage(prefix + "Downloading TubeTils ...  " + (int)downloadProgress + "%");
                     }
                 };
-                timer.schedule(timerTask, 0, 250);
+                downloadTimer.schedule(timerTask, 0, 250);
             });
-            thread.start();
+            downloadThread.start();
 
             float totalDataRead = 0;
             BufferedInputStream in = new BufferedInputStream(connection.getInputStream());
@@ -127,8 +160,8 @@ public class TubeTilsManager {
                 bout.write(data,0,i);
                 downloadProgress = (totalDataRead*100) / filesize;
             }
-            timer.cancel();
-            thread.interrupt();
+            downloadTimer.cancel();
+            downloadThread.interrupt();
             ccs.sendMessage(prefix + "Downloading TubeTils ... " + (int)downloadProgress + "%");
 
             bout.close();
@@ -138,6 +171,8 @@ public class TubeTilsManager {
             ccs.sendMessage(prefix + "§cError while downloading TubeTils! Disabling plugin ...");
             exception.printStackTrace();
 
+            downloadTimer.cancel();
+            downloadThread.interrupt();
             pluginManager.disablePlugin(runningPlugin);
         }
     }
