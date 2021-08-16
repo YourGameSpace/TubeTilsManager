@@ -9,14 +9,20 @@ import org.bukkit.plugin.PluginManager;
 
 import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class TubeTilsManager {
 
+    private final ConsoleCommandSender ccs = Bukkit.getConsoleSender();
+    private final PluginManager pluginManager = Bukkit.getPluginManager();
+    private final Plugin tubeTils = pluginManager.getPlugin("TubeTils");
+
     private final String prefix;
-    private final String snapshot;
+    private final int snapshot;
+    private final String snapshotBuild;
     private final String version;
     private final Plugin runningPlugin;
 
@@ -28,23 +34,29 @@ public class TubeTilsManager {
      * @param version The Plugin-Version, which will be used for the update check
      * @param autoRun Determines whether the manager is automatically executed when the instance is created
      */
-    public TubeTilsManager(String prefix, Plugin plugin, String snapshot, String version, boolean autoRun) {
+    public TubeTilsManager(String prefix, Plugin plugin, int snapshot, String version, boolean autoRun) {
         this.prefix = prefix;
         this.snapshot = snapshot;
+        this.snapshotBuild = "SNAPSHOT-" + this.snapshot;
         this.version = version;
         this.runningPlugin = plugin;
 
         if(autoRun) check();
     }
 
-    private final ConsoleCommandSender ccs = Bukkit.getConsoleSender();
-    private final PluginManager pluginManager = Bukkit.getPluginManager();
-    private final Plugin tubeTils = pluginManager.getPlugin("TubeTils");
+    private boolean isOnline = false;
 
     @SuppressWarnings("ConstantConditions")
     public void check() {
+        onlineCheck();
+        if(!isOnline) {
+            ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: No connection to the internet could be established.");
+            pluginManager.disablePlugin(runningPlugin);
+            return;
+        }
+
         if(!isInstalled()) {
-            download(snapshot);
+            download(snapshotBuild);
             enablePlugin();
             return;
         }
@@ -54,10 +66,24 @@ public class TubeTilsManager {
                 ccs.sendMessage(prefix + "§eThe currently installed TubeTils version does not meet the requirements! Disabling installed version ...");
                 pluginManager.disablePlugin(tubeTils);
 
-                download(snapshot);
+                download(snapshotBuild);
                 enablePlugin();
             }
         }
+    }
+
+    private void onlineCheck() {
+        boolean google = false;
+        boolean cloudflare = false;
+
+        try {
+            google = InetAddress.getByName("8.8.8.8").isReachable(5000);
+            cloudflare = InetAddress.getByName("1.1.1.1").isReachable(5000);
+        } catch (IOException exception) {
+            //Only catch
+        }
+
+        isOnline = google || cloudflare;
     }
 
     public String getVersion() {
