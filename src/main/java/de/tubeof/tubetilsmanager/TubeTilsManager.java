@@ -1,5 +1,6 @@
 package de.tubeof.tubetilsmanager;
 
+import de.tubeof.tubetilsmanager.files.MetaFile;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.plugin.InvalidDescriptionException;
@@ -15,6 +16,7 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
+@SuppressWarnings({"unused", "ConstantConditions"})
 public class TubeTilsManager {
 
     private final ConsoleCommandSender ccs = Bukkit.getConsoleSender();
@@ -24,7 +26,6 @@ public class TubeTilsManager {
     private final String prefix;
     private final int snapshot;
     private final String snapshotBuild;
-    private final String version;
     private final Plugin runningPlugin;
 
     /**
@@ -39,7 +40,6 @@ public class TubeTilsManager {
         this.prefix = prefix;
         this.snapshot = snapshot;
         this.snapshotBuild = "SNAPSHOT-" + this.snapshot;
-        this.version = version;
         this.runningPlugin = plugin;
 
         if(autoRun) check();
@@ -57,19 +57,44 @@ public class TubeTilsManager {
             return;
         }
 
+        MetaFile metaFile = new MetaFile(prefix, true);
+
+        // If not installed: Download
         if(!isInstalled()) {
             download(snapshotBuild);
             enablePlugin();
+            metaFile.setBuild(snapshot);
             return;
         }
 
+        // Checks if TubeTils already installed
         if(isInstalled()) {
-            if(!getVersion().equals(version)) {
+
+            // Check if build-meta exists; If not: Download build
+            if(metaFile.getBuild() == -1) {
+                ccs.sendMessage(prefix + "§eThe currently installed TubeTils version may not meet the requirements: No build-meta found! Disabling installed version ...");
+                pluginManager.disablePlugin(tubeTils);
+
+                download(snapshotBuild);
+                enablePlugin();
+                metaFile.setBuild(snapshot);
+                return;
+            }
+
+            // Check if installed build is older then requested build
+            if(metaFile.getBuild() < snapshot) {
                 ccs.sendMessage(prefix + "§eThe currently installed TubeTils version does not meet the requirements! Disabling installed version ...");
                 pluginManager.disablePlugin(tubeTils);
 
                 download(snapshotBuild);
                 enablePlugin();
+                metaFile.setBuild(snapshot);
+                return;
+            }
+
+            // TubeTils required build is installed
+            if(metaFile.getBuild() >= snapshot) {
+                ccs.sendMessage(prefix + "§aCurrently installed TubeTils version meet the requirements!");
             }
         }
     }
@@ -103,6 +128,7 @@ public class TubeTilsManager {
     private float downloadProgress = 0;
     private Timer downloadTimer;
     private Thread downloadThread;
+    @SuppressWarnings("UnusedAssignment")
     private void download(String downloadSnapshot) {
         try {
             URL url = new URL("https://hub.yourgamespace.com/repo/de/tubeof/TubeTils/" + downloadSnapshot + "/TubeTils-" + downloadSnapshot + ".jar");
