@@ -24,19 +24,18 @@ public class TubeTilsManager {
     private final Plugin tubeTils = pluginManager.getPlugin("TubeTils");
 
     private final String prefix;
+    private final Plugin runningPlugin;
     private final int snapshot;
     private final String snapshotBuild;
-    private final Plugin runningPlugin;
 
     /**
      * Creates a new instance and manage TubeTils
      * @param prefix The prefix, which will be used in the console
      * @param plugin Your plugin main Class
      * @param snapshot The Snapshot-Version, which should be installed
-     * @param version The Plugin-Version, which will be used for the update check
      * @param autoRun Determines whether the manager is automatically executed when the instance is created
      */
-    public TubeTilsManager(String prefix, Plugin plugin, int snapshot, String version, boolean autoRun) {
+    public TubeTilsManager(String prefix, Plugin plugin, int snapshot, boolean autoRun) {
         this.prefix = prefix;
         this.snapshot = snapshot;
         this.snapshotBuild = "SNAPSHOT-" + this.snapshot;
