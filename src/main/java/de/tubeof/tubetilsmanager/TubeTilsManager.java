@@ -60,7 +60,7 @@ public class TubeTilsManager {
 
         // If not installed: Download
         if(!isInstalled()) {
-            download(snapshotBuild);
+            download();
             enablePlugin();
             metaFile.setBuild(snapshot);
             return;
@@ -74,7 +74,7 @@ public class TubeTilsManager {
                 ccs.sendMessage(prefix + "§eThe currently installed TubeTils version may not meet the requirements: No build-meta found! Disabling installed version ...");
                 pluginManager.disablePlugin(tubeTils);
 
-                download(snapshotBuild);
+                download();
                 enablePlugin();
                 metaFile.setBuild(snapshot);
                 return;
@@ -85,7 +85,7 @@ public class TubeTilsManager {
                 ccs.sendMessage(prefix + "§eThe currently installed TubeTils version does not meet the requirements! Disabling installed version ...");
                 pluginManager.disablePlugin(tubeTils);
 
-                download(snapshotBuild);
+                download();
                 enablePlugin();
                 metaFile.setBuild(snapshot);
                 return;
@@ -128,9 +128,9 @@ public class TubeTilsManager {
     private Timer downloadTimer;
     private Thread downloadThread;
     @SuppressWarnings("UnusedAssignment")
-    private void download(String downloadSnapshot) {
+    private void download() {
         try {
-            URL url = new URL("https://hub.yourgamespace.com/repo/de/tubeof/TubeTils/" + downloadSnapshot + "/TubeTils-" + downloadSnapshot + ".jar");
+            URL url = new URL(getJenkinsDownloadUrl());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestProperty("User-Agent", "TubeTilsUpdateChecker");
             connection.setRequestProperty("Header-Token", "SD998FS0FG07");
