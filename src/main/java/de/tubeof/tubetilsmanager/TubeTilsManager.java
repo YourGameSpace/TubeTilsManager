@@ -56,9 +56,9 @@ public class TubeTilsManager {
         if(isInstalled()) {
 
             // Check if server is offline and no build meta was found
-            if(!isOnline || metaFile.getBuild() == -1) {
+            if(!isOnline && metaFile.getBuild() == -1) {
                 ccs.sendMessage(prefix + "§cWARNING: The server is not connected to the internet and no build meta could be found!");
-                ccs.sendMessage(prefix + "§cHow to fix: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§a. §f2) §cRestart your server.");
+                ccs.sendMessage(prefix + "§cHow to fix: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§c. §f2) §cRestart your server.");
                 return;
             }
 
@@ -115,7 +115,7 @@ public class TubeTilsManager {
             google = InetAddress.getByName("8.8.8.8").isReachable(5000);
             cloudflare = InetAddress.getByName("1.1.1.1").isReachable(5000);
         } catch (IOException exception) {
-            //Only catch
+            exception.printStackTrace();
         }
 
         isOnline = google || cloudflare;
