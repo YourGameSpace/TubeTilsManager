@@ -16,7 +16,7 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@SuppressWarnings({"unused", "ConstantConditions"})
+@SuppressWarnings({"unused", "ConstantConditions", "UnnecessaryReturnStatement"})
 public class TubeTilsManager {
 
     private final ConsoleCommandSender ccs = Bukkit.getConsoleSender();
@@ -46,28 +46,21 @@ public class TubeTilsManager {
 
     private boolean isOnline = false;
 
-    @SuppressWarnings("ConstantConditions")
     public void check() {
-        onlineCheck();
-        if(!isOnline) {
-            ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: No connection to the internet could be established.");
-            ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
-            pluginManager.disablePlugin(runningPlugin);
-            return;
-        }
-
         MetaFile metaFile = new MetaFile(prefix, true);
 
-        // If not installed: Download
-        if(!isInstalled()) {
-            download();
-            enablePlugin();
-            metaFile.setBuild(snapshot);
-            return;
-        }
+        // Run online check
+        onlineCheck();
 
         // Checks if TubeTils already installed
         if(isInstalled()) {
+
+            // Check if server is offline and no build meta was found
+            if(!isOnline || metaFile.getBuild() == -1) {
+                ccs.sendMessage(prefix + "§cWARNING: The server is not connected to the internet and no build meta could be found!");
+                ccs.sendMessage(prefix + "§cHow to fix: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§a. §f2) §cRestart your server.");
+                return;
+            }
 
             // Check if build-meta exists; If not: Download build
             if(metaFile.getBuild() == -1) {
@@ -96,6 +89,22 @@ public class TubeTilsManager {
                 ccs.sendMessage(prefix + "§aCurrently installed TubeTils version meet the requirements!");
             }
         }
+
+        // Check if server is connected
+        if(!isOnline) {
+            metaFile.setBuild(snapshot);
+            sendOfflineMessagee();
+            pluginManager.disablePlugin(runningPlugin);
+            return;
+        }
+
+        // If not installed: Download
+        if(!isInstalled()) {
+            download();
+            enablePlugin();
+            metaFile.setBuild(snapshot);
+            return;
+        }
     }
 
     private void onlineCheck() {
@@ -122,6 +131,11 @@ public class TubeTilsManager {
 
     private boolean isInstalled() {
         return tubeTils != null;
+    }
+
+    private void sendOfflineMessagee() {
+        ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: No connection to the internet could be established.");
+        ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
     }
 
     private float downloadProgress = 0;
