@@ -144,6 +144,7 @@ public class TubeTilsManager {
     private void sendOfflineMessagee() {
         ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: No connection to the internet could be established.");
         ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
+        ccs.sendMessage(prefix + "§cDownloaded? Follow this steps: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§c. §f2) §cStart your server again.");
     }
 
     private float downloadProgress = 0;
@@ -177,8 +178,6 @@ public class TubeTilsManager {
                 connection.connect();
             } catch (SocketTimeoutException exception) {
                 ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: Connection timeout!");
-                ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
-                ccs.sendMessage(prefix + "§cDownloaded? Follow this steps: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§c. §f2) §cStart your server again.");
                 return;
             }
 
