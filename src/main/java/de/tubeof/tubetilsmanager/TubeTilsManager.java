@@ -55,10 +55,9 @@ public class TubeTilsManager {
         // Checks if TubeTils already installed
         if(isInstalled()) {
 
-            // Check if server is offline and no build meta was found
-            if(!isOnline && metaFile.getBuild() == -1) {
-                ccs.sendMessage(prefix + "§cWARNING: The server is not connected to the internet and no build meta could be found!");
-                ccs.sendMessage(prefix + "§cHow to fix: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§c. §f2) §cRestart your server.");
+            // TubeTils required build is installed
+            if(metaFile.getBuild() >= snapshot) {
+                ccs.sendMessage(prefix + "§aCurrently installed TubeTils version meet the requirements!");
                 return;
             }
 
@@ -66,6 +65,13 @@ public class TubeTilsManager {
             if(metaFile.getBuild() == -1) {
                 ccs.sendMessage(prefix + "§eThe currently installed TubeTils version may not meet the requirements: No build-meta found! Disabling installed version ...");
                 pluginManager.disablePlugin(tubeTils);
+
+                // Check if server is connected
+                if(!isOnline) {
+                    sendOfflineMessagee();
+                    pluginManager.disablePlugin(runningPlugin);
+                    return;
+                }
 
                 download();
                 enablePlugin();
@@ -78,28 +84,30 @@ public class TubeTilsManager {
                 ccs.sendMessage(prefix + "§eThe currently installed TubeTils version does not meet the requirements! Disabling installed version ...");
                 pluginManager.disablePlugin(tubeTils);
 
+                // Check if server is connected
+                if(!isOnline) {
+                    sendOfflineMessagee();
+                    pluginManager.disablePlugin(runningPlugin);
+                    return;
+                }
+
                 download();
                 enablePlugin();
                 metaFile.setBuild(snapshot);
                 return;
             }
-
-            // TubeTils required build is installed
-            if(metaFile.getBuild() >= snapshot) {
-                ccs.sendMessage(prefix + "§aCurrently installed TubeTils version meet the requirements!");
-            }
-        }
-
-        // Check if server is connected
-        if(!isOnline) {
-            metaFile.setBuild(snapshot);
-            sendOfflineMessagee();
-            pluginManager.disablePlugin(runningPlugin);
-            return;
         }
 
         // If not installed: Download
         if(!isInstalled()) {
+
+            // Check if server is connected
+            if(!isOnline) {
+                sendOfflineMessagee();
+                pluginManager.disablePlugin(runningPlugin);
+                return;
+            }
+
             download();
             enablePlugin();
             metaFile.setBuild(snapshot);
@@ -170,6 +178,7 @@ public class TubeTilsManager {
             } catch (SocketTimeoutException exception) {
                 ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: Connection timeout!");
                 ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
+                ccs.sendMessage(prefix + "§cDownloaded? Follow this steps: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§c. §f2) §cStart your server again.");
                 return;
             }
 
