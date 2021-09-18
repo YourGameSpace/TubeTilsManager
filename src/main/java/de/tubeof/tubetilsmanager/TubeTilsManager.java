@@ -120,8 +120,8 @@ public class TubeTilsManager {
         boolean cloudflare = false;
 
         try {
-            google = InetAddress.getByName("8.8.8.8").isReachable(5000);
-            cloudflare = InetAddress.getByName("1.1.1.1").isReachable(5000);
+            google = InetAddress.getByAddress(new byte[] {8,8,8,8}).isReachable(5000);
+            cloudflare = InetAddress.getByAddress(new byte[] {1,1,1,1}).isReachable(5000);
         } catch (IOException exception) {
             exception.printStackTrace();
         }
