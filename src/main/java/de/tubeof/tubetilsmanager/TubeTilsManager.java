@@ -126,7 +126,7 @@ public class TubeTilsManager {
             connection.setRequestMethod("HEAD");
             connection.setConnectTimeout(5000);
             connection.setReadTimeout(5000);
-            yourgamespace = true;
+            amionline = true;
         } catch (IOException exception) {
             // Just catch
         }
