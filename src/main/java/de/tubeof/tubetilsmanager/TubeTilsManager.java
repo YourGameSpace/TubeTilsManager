@@ -10,7 +10,6 @@ import org.bukkit.plugin.PluginManager;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.Timer;
