@@ -15,7 +15,7 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
-@SuppressWarnings({"unused", "ConstantConditions", "UnnecessaryReturnStatement"})
+@SuppressWarnings("unused")
 public class TubeTilsManager {
 
     private final ConsoleCommandSender ccs = Bukkit.getConsoleSender();
@@ -44,6 +44,7 @@ public class TubeTilsManager {
     }
 
     private boolean isOnline = false;
+    private boolean wasSuccessful;
 
     public void check() {
         MetaFile metaFile = new MetaFile(prefix, true);
@@ -56,6 +57,7 @@ public class TubeTilsManager {
 
             // TubeTils required build is installed
             if(metaFile.getBuild() >= snapshot) {
+                wasSuccessful = true;
                 ccs.sendMessage(prefix + "§aCurrently installed TubeTils version meet the requirements!");
                 return;
             }
@@ -67,6 +69,7 @@ public class TubeTilsManager {
 
                 // Check if server is connected
                 if(!isOnline) {
+                    wasSuccessful = false;
                     sendOfflineMessagee();
                     pluginManager.disablePlugin(runningPlugin);
                     return;
@@ -85,6 +88,7 @@ public class TubeTilsManager {
 
                 // Check if server is connected
                 if(!isOnline) {
+                    wasSuccessful = false;
                     sendOfflineMessagee();
                     pluginManager.disablePlugin(runningPlugin);
                     return;
@@ -102,6 +106,7 @@ public class TubeTilsManager {
 
             // Check if server is connected
             if(!isOnline) {
+                wasSuccessful = false;
                 sendOfflineMessagee();
                 pluginManager.disablePlugin(runningPlugin);
                 return;
@@ -110,7 +115,6 @@ public class TubeTilsManager {
             download();
             enablePlugin();
             metaFile.setBuild(snapshot);
-            return;
         }
     }
 
@@ -147,28 +151,9 @@ public class TubeTilsManager {
         isOnline = amionline || yourgamespace;
     }
 
-    private String getJenkinsDownloadUrl() {
-        return "https://hub.yourgamespace.com/jenkins/view/Libs/job/TubeTils/" + snapshot + "/artifact/target/TubeTils-" + snapshotBuild + ".jar";
-    }
-
-    public String getVersion() {
-        return tubeTils != null ? tubeTils.getDescription().getVersion() : null;
-    }
-
-    private boolean isInstalled() {
-        return tubeTils != null;
-    }
-
-    private void sendOfflineMessagee() {
-        ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: No connection to the internet could be established.");
-        ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
-        ccs.sendMessage(prefix + "§cDownloaded? Follow this steps: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§c. §f2) §cStart your server again.");
-    }
-
     private float downloadProgress = 0;
     private Timer downloadTimer;
     private Thread downloadThread;
-    @SuppressWarnings("UnusedAssignment")
     private void download() {
         try {
             URL url = new URL(getJenkinsDownloadUrl());
@@ -218,7 +203,7 @@ public class TubeTilsManager {
             FileOutputStream fos = new FileOutputStream("plugins/TubeTils.jar");
             BufferedOutputStream bout = new BufferedOutputStream(fos,1024);
             byte[] data = new byte[1024];
-            int i = 0;
+            int i;
 
             while((i=in.read(data,0,1024))>=0) {
                 totalDataRead=totalDataRead+i;
@@ -242,17 +227,38 @@ public class TubeTilsManager {
         }
     }
 
+    @SuppressWarnings("ConstantConditions")
     private void enablePlugin() {
         try {
             File file = new File("plugins/TubeTils.jar");
             Plugin plugin = pluginManager.loadPlugin(file);
             pluginManager.enablePlugin(plugin);
+            wasSuccessful = true;
         } catch (InvalidPluginException | InvalidDescriptionException exception) {
             ccs.sendMessage(prefix + "Error while enabling TubeTils! Disabling plugin ...");
             exception.printStackTrace();
+            wasSuccessful = false;
 
             pluginManager.disablePlugin(runningPlugin);
         }
+    }
+
+    private String getJenkinsDownloadUrl() {
+        return "https://hub.yourgamespace.com/jenkins/view/Libs/job/TubeTils/" + snapshot + "/artifact/target/TubeTils-" + snapshotBuild + ".jar";
+    }
+
+    private void sendOfflineMessagee() {
+        ccs.sendMessage(prefix + "§cTubeTils could not be installed automatically: No connection to the internet could be established.");
+        ccs.sendMessage(prefix + "§cTubeTils must be downloaded manually and then added to the plugins folder: " + getJenkinsDownloadUrl());
+        ccs.sendMessage(prefix + "§cDownloaded? Follow this steps: §f1) §cGo to §eplugins/TubeTilsManager/Meta.yml §cand set §eBuild §cto §e" + snapshot + "§c. §f2) §cStart your server again.");
+    }
+
+    private boolean isInstalled() {
+        return tubeTils != null;
+    }
+
+    public boolean wasSuccessful() {
+        return wasSuccessful;
     }
 
 }
